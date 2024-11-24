@@ -21,15 +21,24 @@ const configureSocketListeners = (io) => {
                 } else {
                     const existingPlayer = players[0];
                     const arrivedPlayer = { socketId, nickName };
-                    
-                    console.log('Arriving', arrivedPlayer);
-                    console.log('Existing', existingPlayer);
-                    
+                    const index = Math.floor(Math.random() * 10);
+
+                    console.log("Arriving", arrivedPlayer);
+                    console.log("Existing", existingPlayer);
+
                     players = players.filter((_, index) => index !== 0);
-                    socket.emit(events.emit.OPPONENT_FOUND, existingPlayer);
+
+                    socket.emit(
+                        events.emit.OPPONENT_FOUND,
+                        {
+                            player: existingPlayer,
+                            index,
+                        },
+                    );
+
                     io.to(existingPlayer.socketId).emit(
                         events.emit.OPPONENT_FOUND,
-                        arrivedPlayer,
+                        { player: arrivedPlayer, index },
                     );
                 }
             }
@@ -37,7 +46,7 @@ const configureSocketListeners = (io) => {
 
         socket.on(events.listen.STOP_WAITING, (socketId) => {
             players = players.filter((player) => player.socketId !== socketId);
-            console.log('Waiting stop', players)
+            console.log("Waiting stop", players);
         });
 
         socket.on(events.listen.USER_DISCONNECTED, (opponentSocketId) => {
@@ -46,7 +55,9 @@ const configureSocketListeners = (io) => {
 
         socket.on(events.listen.UPDATE_SCORE, ({ opponentSocketId, score }) => {
             socket.emit(events.emit.SCORE_UPDATED, { currentScore: score });
-            io.to(opponentSocketId).emit(events.emit.SCORE_UPDATED, { opponentScore: score });
+            io.to(opponentSocketId).emit(events.emit.SCORE_UPDATED, {
+                opponentScore: score,
+            });
         });
 
         /*-------------------------------------------------------------------------------------------*/
